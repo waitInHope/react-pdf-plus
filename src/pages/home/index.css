@@ -1,0 +1,7 @@
+
+.pdfPageStyle {
+    color: black;
+}
+.pdfPageStyle .react-pdf__Page__textContent {
+    color: black !important;
+}
