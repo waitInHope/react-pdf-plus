@@ -16,13 +16,20 @@ router.get('/pdf', (ctx, next) => {
     // 读取本地pdf文件并返回给浏览器
     let url = path.join(__dirname, '../assets/2022年留杭承诺书.pdf');
     console.log(`文件的路径${url}`);
-    ctx.set('Content-Type', 'application/pdf');
+
+    // ctx.set('Content-Type', 'application/pdf');
+    ctx.set('Content-Type', 'application/octet-stream');
+    // ctx.set('Transfer-Encoding', 'chunked');
+
     let content = fs.readFileSync(url, 'binary');
 
-    const buf = Buffer.from(content, 'binary');
-    // const arrayBuf = new Int8Array(buf.data);
+    // react-pdf中的filr采用base64的方式
+    let buf = Buffer.from(content, 'binary').toString('base64');
     ctx.body = buf;
-    // ctx.set('Transfer-Encoding', 'chunked');
+
+    // react-pdf中的file采用url的方式   必须使用binary的编码格式
+    // const buf = Buffer.from(content, 'binary');
+    // ctx.body = buf;
     next();
 })
 
