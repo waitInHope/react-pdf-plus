@@ -5,3 +5,8 @@
 .pdfPageStyle .react-pdf__Page__textContent {
     color: black !important;
 }
+
+.container {
+    height: 800px;
+    overflow: scroll;
+}
