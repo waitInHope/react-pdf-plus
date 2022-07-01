@@ -6,14 +6,17 @@ import { Document, Page, pdfjs } from 'react-pdf';
 // pdfjs.GlobalWorkerOptions.workerSrc = pdfworkerSrc;
 
 import './index.css'
+import { useMerge } from '../utils/tools';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cat.net/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-const Home = React.memo(() => {
+const Home = React.memo((props) => {
     const api = '/api/pdf';
 
+    const preloadPageNum = 5;
+
     let [content, setContent] = useState('');
-    let [pageNum, setPageNum] = useState(0);
+    let [totalPageCount, setTotalPageCount] = useState(0);
     let [pageArr, setPageArr] = useState([1]);
     let [subHeight, setSubHeight] = useState(0);
 
@@ -34,31 +37,25 @@ const Home = React.memo(() => {
     }, []);
 
     const loadSuccessHandle = (page) => {
-        const pageNum = page?._pdfInfo?.numPages;
-        console.log(`该pdf文件一共有${pageNum}页`)
-        setPageNum(pageNum);
-
-        if(pageNum > 3) {
-            setPageArr(createIncrementArr(3));
+        const totalPageCount = page?._pdfInfo?.numPages || 0;
+        setTotalPageCount(totalPageCount);
+        
+        // 总页数 > 预加载页数
+        if(totalPageCount > preloadPageNum) {
+            setPageArr(createIncrementArr(preloadPageNum));
         } else {
-            setPageArr(createIncrementArr(pageNum));
+            setPageArr(createIncrementArr(totalPageCount));
         }
     }
 
     const scrollHandler = (e) => {
-        // console.log('scrollHeight', e.target.scrollHeight);
-        // console.log('scrollTop', e.target.scrollTop);
-        // console.log('offsetTop', e.target.offsetTop);
-        // console.log('offsetHeight', e.target.offsetHeight);
-        // console.log(e)
         if(e.target.scrollTop - subHeight > e.target.offsetHeight) {
             // 滚动超过一页。获取下一波页数
-            // debugger
-            console.log('滚动超过一页。获取下一波页数');
             setSubHeight(subHeight + e.target.offsetHeight);
             console.log('当前的页数数组', pageArr);
-            console.log('总页数', pageNum);
-            if(pageArr.length + 1 <= pageNum) {
+            console.log('总页数', totalPageCount);
+            if(pageArr.length + 1 <= totalPageCount) {
+                console.log(`滚动超过一页。获取第${pageArr.length + 1}页数据`);
                 setPageArr(createIncrementArr(pageArr.length + 1))
             }
         }
@@ -80,10 +77,10 @@ const Home = React.memo(() => {
             <p>调用的后端接口{api}</p>
             <div className="container" onScroll={scrollHandler}>
                 {/* <Document file={'/api/pdf'} onLoadSuccess={loadSuccessHandle}>
-                    { pageNum ? new Array(pageNum).fill('').map((n, index) => <Page key={index} pageNumber={index + 1} className='pdfPageStyle' />) : ''}
+                    { totalPageCount ? new Array(totalPageCount).fill('').map((n, index) => <Page key={index} pageNumber={index + 1} className='pdfPageStyle' />) : ''}
                 </Document> */}
-                <Document file={content} onLoadSuccess={loadSuccessHandle} loading={'wait****'}>
-                    {/* { pageNum ? new Array(pageNum).fill('').map((n, index) => <Page key={index} pageNumber={index + 1} className='pdfPageStyle' />) : ''} */}
+                <Document file={content} onLoadSuccess={loadSuccessHandle} {...props}>
+                    {/* { totalPageCount ? new Array(totalPageCount).fill('').map((n, index) => <Page key={index} pageNumber={index + 1} className='pdfPageStyle' />) : ''} */}
                     { pageArr.map(item => <Page key={item} pageNumber={item} className='pdfPageStyle' />) }
                 </Document>
             </div>
